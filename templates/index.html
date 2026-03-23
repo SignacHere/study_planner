@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Based Study Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+
+        .schedule-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 30px;
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .schedule-header h2 {
+            color: #667eea;
+            font-size: 1.8em;
+        }
+
+        .schedule-day {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .schedule-day h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .schedule-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .schedule-item-left {
+            flex: 1;
+        }
+
+        .subject-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .schedule-details {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge-study {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-revision {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .badge-buffer {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .badge-easy {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .badge-medium {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .badge-hard {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        .priority-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .exam-list {
+            list-style: none;
+        }
+
+        .exam-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exam-item strong {
+            color: #667eea;
+        }
+
+        .days-left {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 AI-Based Study Planner</h1>
+            <p>Smart exam preparation with personalized scheduling</p>
+        </header>
+
+        <div id="alertContainer"></div>
+
+        <!-- Stats Dashboard -->
+        <div class="stats-grid" id="statsContainer">
+            <!-- Stats will be loaded here -->
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="dashboard">
+            <!-- Add Subject Card -->
+            <div class="card">
+                <h2>📖 Add Subject</h2>
+                <form id="subjectForm">
+                    <div class="form-group">
+                        <label for="subjectName">Subject Name</label>
+                        <input type="text" id="subjectName" required placeholder="e.g., Mathematics">
+                    </div>
+                    <div class="form-group">
+                        <label for="difficulty">Difficulty Level</label>
+                        <select id="difficulty" required>
+                            <option value="">Select difficulty</option>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="importance">Importance Weight (0.5 - 2.0)</label>
+                        <input type="number" id="importance" min="0.5" max="2.0" step="0.1" value="1.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="totalTopics">Total Topics</label>
+                        <input type="number" id="totalTopics" min="0" value="10" required>
+                    </div>
+                    <button type="submit" class="btn">Add Subject</button>
+                </form>
+            </div>
+
+            <!-- Add Exam Card -->
+            <div class="card">
+                <h2>📅 Add Exam</h2>
+                <form id="examForm">
+                    <div class="form-group">
+                        <label for="examSubject">Select Subject</label>
+                        <select id="examSubject" required>
+                            <option value="">Loading subjects...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="examDate">Exam Date</label>
+                        <input type="date" id="examDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="examTime">Exam Time (Optional)</label>
+                        <input type="time" id="examTime">
+                    </div>
+                    <button type="submit" class="btn">Add Exam</button>
+                </form>
+            </div>
+
+            <!-- User Settings Card -->
+            <div class="card">
+                <h2>⚙️ Settings</h2>
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label for="dailyHours">Daily Study Hours</label>
+                        <input type="number" id="dailyHours" min="1" max="12" step="0.5" value="4" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Update Settings</button>
+                </form>
+                <div style="margin-top: 20px;">
+                    <button id="generateScheduleBtn" class="btn">🎯 Generate Study Schedule</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Exams -->
+        <div class="card" style="margin-bottom: 30px;">
+            <h2>📆 Upcoming Exams</h2>
+            <ul class="exam-list" id="examsList">
+                <li style="text-align: center; color: #999;">No exams added yet</li>
+            </ul>
+        </div>
+
+        <!-- Study Schedule -->
+        <div class="schedule-container hidden" id="scheduleContainer">
+            <div class="schedule-header">
+                <h2>📋 Your Study Schedule</h2>
+                <button id="refreshSchedule" class="btn" style="width: auto; padding: 10px 20px;">Refresh</button>
+            </div>
+            <div id="scheduleContent">
+                <!-- Schedule will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:5000/api';
+        const USER_ID = 1; // Default user for demo
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSubjects();
+            loadExams();
+            loadStats();
+            checkExistingSchedule();
+        });
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Load subjects into dropdown
+        async function loadSubjects() {
+            try {
+                const response = await fetch(`${API_BASE}/subjects?user_id=${USER_ID}`);
+                const subjects = await response.json();
+                
+                const select = document.getElementById('examSubject');
+                select.innerHTML = '<option value="">Select subject</option>';
+                
+                subjects.forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject.subject_id;
+                    option.textContent = subject.subject_name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading subjects:', error);
+            }
+        }
+
+        // Load exams
+        async function loadExams() {
+            try {
+                const response = await fetch(`${API_BASE}/exams?user_id=${USER_ID}`);
+                const exams = await response.json();
+                
+                const examsList = document.getElementById('examsList');
+                
+                if (exams.length === 0) {
+                    examsList.innerHTML = '<li style="text-align: center; color: #999;">No exams added yet</li>';
+                    return;
+                }
+                
+                examsList.innerHTML = '';
+                
+                exams.forEach(exam => {
+                    const examDate = new Date(exam.exam_date);
+                    const today = new Date();
+                    const daysLeft = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+                    
+                    const li = document.createElement('li');
+                    li.className = 'exam-item';
+                    li.innerHTML = `
+                        <div>
+                            <strong>${exam.subject_name}</strong> - ${formatDate(exam.exam_date)}
+                        </div>
+                        <span class="days-left">${daysLeft} days</span>
+                    `;
+                    examsList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error loading exams:', error);
+            }
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/analytics/dashboard?user_id=${USER_ID}`);
+                const data = await response.json();
+                
+                const statsContainer = document.getElementById('statsContainer');
+                statsContainer.innerHTML = `
+                    <div class="stat-box">
+                        <div class="stat-value">${data.total_study_hours}</div>
+                        <div class="stat-label">Total Hours Studied</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${data.upcoming_exams.length}</div>
+                        <div class="stat-label">Upcoming Exams</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">${data.subject_progress.length}</div>
+                        <div class="stat-label">Active Subjects</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Check for existing schedule
+        async function checkExistingSchedule() {
+            try {
+                const response = await fetch(`${API_BASE}/schedule/all?user_id=${USER_ID}`);
+                const schedule = await response.json();
+                
+                if (schedule.length > 0) {
+                    displaySchedule(schedule);
+                }
+            } catch (error) {
+                console.error('Error checking schedule:', error);
+            }
+        }
+
+        // Add subject form
+        document.getElementById('subjectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                user_id: USER_ID,
+                subject_name: document.getElementById('subjectName').value,
+                difficulty_level: document.getElementById('difficulty').value,
+                importance_weight: parseFloat(document.getElementById('importance').value),
+                total_topics: parseInt(document.getElementById('totalTopics').value)
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/subjects`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Subject added successfully!');
+                    e.target.reset();
+                    loadSubjects();
+                    loadStats();
+                } else {
+                    showAlert(result.error || 'Failed to add subject', 'error');
+                }
+            } catch (error) {
+                showAlert('Error adding subject', 'error');
+                console.error(error);
+            }
+        });
+
+        // Add exam form
+        document.getElementById('examForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                user_id: USER_ID,
+                subject_id: parseInt(document.getElementById('examSubject').value),
+                exam_date: document.getElementById('examDate').value,
+                exam_time: document.getElementById('examTime').value || null
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/exams`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Exam added successfully!');
+                    e.target.reset();
+                    loadExams();
+                    loadStats();
+                } else {
+                    showAlert(result.error || 'Failed to add exam', 'error');
+                }
+            } catch (error) {
+                showAlert('Error adding exam', 'error');
+                console.error(error);
+            }
+        });
+
+        // Generate schedule
+        document.getElementById('generateScheduleBtn').addEventListener('click', async () => {
+            try {
+                showAlert('Generating schedule...', 'success');
+                
+                const response = await fetch(`${API_BASE}/schedule/generate`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: USER_ID})
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(`Schedule generated! ${result.total_days} days planned`);
+                    displaySchedule(result.schedule);
+                } else {
+                    showAlert('Failed to generate schedule', 'error');
+                }
+            } catch (error) {
+                showAlert('Error generating schedule', 'error');
+                console.error(error);
+            }
+        });
+
+        // Display schedule
+        function displaySchedule(schedule) {
+            const container = document.getElementById('scheduleContainer');
+            const content = document.getElementById('scheduleContent');
+            
+            container.classList.remove('hidden');
+            
+            // Group by date
+            const groupedSchedule = {};
+            schedule.forEach(item => {
+                if (!groupedSchedule[item.study_date]) {
+                    groupedSchedule[item.study_date] = [];
+                }
+                groupedSchedule[item.study_date].push(item);
+            });
+            
+            content.innerHTML = '';
+            
+            Object.keys(groupedSchedule).sort().forEach(date => {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'schedule-day';
+                
+                const dayHeader = document.createElement('h3');
+                dayHeader.textContent = formatDate(date);
+                dayDiv.appendChild(dayHeader);
+                
+                groupedSchedule[date].forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'schedule-item';
+                    itemDiv.innerHTML = `
+                        <div class="schedule-item-left">
+                            <div class="subject-name">${item.subject_name}</div>
+                            <div class="schedule-details">
+                                ${item.planned_hours} hours
+                                <span class="badge badge-${item.session_type}">${item.session_type}</span>
+                            </div>
+                        </div>
+                        <div class="priority-score">
+                            Priority: ${item.priority_score.toFixed(2)}
+                        </div>
+                    `;
+                    dayDiv.appendChild(itemDiv);
+                });
+                
+                content.appendChild(dayDiv);
+            });
+        }
+
+        // Refresh schedule
+        document.getElementById('refreshSchedule').addEventListener('click', () => {
+            checkExistingSchedule();
+            showAlert('Schedule refreshed!');
+        });
+
+        // Utility function to format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        // Create default user on first load
+        async function ensureDefaultUser() {
+            try {
+                await fetch(`${API_BASE}/users`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username: 'demo_user',
+                        email: 'demo@studyplanner.com',
+                        daily_study_hours: 4.0
+                    })
+                });
+            } catch (error) {
+                // User might already exist
+            }
+        }
+
+        ensureDefaultUser();
+    </script>
+</body>
+</html>
